@@ -1,55 +1,42 @@
 import throttle from "lodash.throttle";
 
 const STORAGE_KEY = 'feedback-form-state';
-const formData = {};
+let formData = {};
 
 const refs = {
     form: document.querySelector('.feedback-form'),
-    input: document.querySelector('.feedback-form input'),
-    textarea: document.querySelector('.feedback-form textarea')
 }
 
 refs.form.addEventListener('submit', onFormSubmit);
-refs.input.addEventListener('input', throttle(onEmailInput, 500));
-refs.textarea.addEventListener('input', throttle(onTextareaInput, 500));
-refs.form.addEventListener('input', e => {
-    formData[e.target.name] = e.target.value;
-});
+refs.form.addEventListener('input', throttle(onInput, 500));
 
-populateTextarea();
-populateInput();
+populateText();
 
 function onFormSubmit(e) {
     e.preventDefault();
-    console.log(formData)
+    console.log(formData);
+    formData = {};
     e.currentTarget.reset();
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(STORAGE_KEY);
 }
 
-function onEmailInput() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
+function onInput(e) {
+    formData[e.target.name] = e.target.value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
 }
 
-function onTextareaInput() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData))
-}
 
-function populateInput() {
-    const savedEmail = localStorage.getItem(STORAGE_KEY);
-    const parsedSavedEmail = JSON.parse(savedEmail)
+function populateText() {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+        formData = JSON.parse(savedData);
+    };
     
-    if (savedEmail) {
-        
-        refs.input.value = parsedSavedEmail.email
-    }
-}
-
-function populateTextarea() {
-    const savedMessage = localStorage.getItem(STORAGE_KEY);
-    const parsedSavedMessage = JSON.parse(savedMessage)
+    const entries = Object.entries(formData);
     
-    if (savedMessage) {
-        
-        refs.textarea.value = parsedSavedMessage.message
-    }
+    entries.forEach(function (el) {
+        const [key,value] = el;
+        refs.form[key].value = value;
+    });
+    
 }
